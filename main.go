@@ -9,12 +9,14 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	awsconfig "github.com/aws/aws-sdk-go-v2/config"
 	awscloudwatch "github.com/aws/aws-sdk-go-v2/service/cloudwatch"
-	"github.com/skpr/lambda-eks-event-cloudwatch/internal/cloudwatch"
+	awscloudwatchtypes "github.com/aws/aws-sdk-go-v2/service/cloudwatch/types"
+	"github.com/aws/aws-sdk-go-v2/service/eks"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/tools/clientcmd"
 
+	"github.com/skpr/lambda-eks-event-cloudwatch/internal/cloudwatch"
+	skpreks "github.com/skpr/lambda-eks-event-cloudwatch/internal/eks"
 	"github.com/skpr/lambda-eks-event-cloudwatch/pkg/annotation"
 )
 
@@ -37,20 +39,8 @@ func HandleLambdaEvent(ctx context.Context, event *cloudwatch.Event) error {
 		return fmt.Errorf("unable to load SDK config, %v", err)
 	}
 
-	cloudwatchClient := awscloudwatch.NewFromConfig(cfg)
+	log.Printf("Validating event")
 
-	err = run(ctx, cloudwatchClient, event)
-	if err != nil {
-		return err
-	}
-
-	log.Println("Function complete")
-
-	return nil
-}
-
-// Run will execute the core of the function.
-func run(ctx context.Context, cloudwatchClient cloudwatch.ClientInterface, event *cloudwatch.Event) error {
 	if event.AlarmARN == "" {
 		return fmt.Errorf("alarm ARN is required")
 	}
@@ -63,34 +53,30 @@ func run(ctx context.Context, cloudwatchClient cloudwatch.ClientInterface, event
 		return fmt.Errorf("alarm configuration description is required")
 	}
 
-	alarm, err := cloudwatchClient.ListTagsForResource(ctx, &awscloudwatch.ListTagsForResourceInput{
+	log.Printf("Looking up alarm tags")
+
+	alarm, err := awscloudwatch.NewFromConfig(cfg).ListTagsForResource(ctx, &awscloudwatch.ListTagsForResourceInput{
 		ResourceARN: aws.String(event.AlarmARN),
 	})
 	if err != nil {
 		return fmt.Errorf("failed to list tags for resource: %w", err)
 	}
 
-	apiVersion, err := cloudwatch.GetValueFromTag(alarm.Tags, cloudwatch.TagKeyAPIVersion)
+	cluster, err := cloudwatch.GetValueFromTag(alarm.Tags, cloudwatch.TagKeyCluster)
 	if err != nil {
-		return fmt.Errorf("failed to get api version from tags: %w", err)
+		return fmt.Errorf("failed to get cluster from tags: %w", err)
 	}
 
-	kind, err := cloudwatch.GetValueFromTag(alarm.Tags, cloudwatch.TagKeyKind)
+	log.Printf("Marshalling to Kubernetes event")
+
+	object, err := getKubernetesEvent(alarm.Tags, event)
 	if err != nil {
-		return fmt.Errorf("failed to get kind from tags: %w", err)
+		return err
 	}
 
-	namespace, err := cloudwatch.GetValueFromTag(alarm.Tags, cloudwatch.TagKeyNamespace)
-	if err != nil {
-		return fmt.Errorf("failed to get namespace from tags: %w", err)
-	}
+	log.Printf("Connecting to EKS cluster")
 
-	name, err := cloudwatch.GetValueFromTag(alarm.Tags, cloudwatch.TagKeyName)
-	if err != nil {
-		return fmt.Errorf("failed to get name from tags: %w", err)
-	}
-
-	config, err := clientcmd.BuildConfigFromFlags("", "")
+	config, err := skpreks.BuildKubeconfig(ctx, eks.NewFromConfig(cfg), cluster)
 	if err != nil {
 		return fmt.Errorf("failed to get kubernetes config: %w", err)
 	}
@@ -100,7 +86,41 @@ func run(ctx context.Context, cloudwatchClient cloudwatch.ClientInterface, event
 		return fmt.Errorf("failed to get kubernetes clientset: %w", err)
 	}
 
-	e := &corev1.Event{
+	log.Printf("Creating event")
+
+	_, err = clientset.CoreV1().Events(object.ObjectMeta.Namespace).Create(context.TODO(), object, metav1.CreateOptions{})
+	if err != nil {
+		return fmt.Errorf("failed to create event: %w", err)
+	}
+
+	log.Println("Function complete")
+
+	return nil
+}
+
+// Run will execute the core of the function.
+func getKubernetesEvent(tags []awscloudwatchtypes.Tag, event *cloudwatch.Event) (*corev1.Event, error) {
+	apiVersion, err := cloudwatch.GetValueFromTag(tags, cloudwatch.TagKeyAPIVersion)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get api version from tags: %w", err)
+	}
+
+	kind, err := cloudwatch.GetValueFromTag(tags, cloudwatch.TagKeyKind)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get kind from tags: %w", err)
+	}
+
+	namespace, err := cloudwatch.GetValueFromTag(tags, cloudwatch.TagKeyNamespace)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get namespace from tags: %w", err)
+	}
+
+	name, err := cloudwatch.GetValueFromTag(tags, cloudwatch.TagKeyName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get name from tags: %w", err)
+	}
+
+	object := &corev1.Event{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace:    namespace,
 			GenerateName: "aws-cloudwatch-alarm-",
@@ -119,10 +139,5 @@ func run(ctx context.Context, cloudwatchClient cloudwatch.ClientInterface, event
 		Message: event.AlarmData.Configuration.Description,
 	}
 
-	_, err = clientset.CoreV1().Events(namespace).Create(context.TODO(), e, metav1.CreateOptions{})
-	if err != nil {
-		return fmt.Errorf("failed to create event: %w", err)
-	}
-
-	return nil
+	return object, nil
 }
