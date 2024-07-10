@@ -29,8 +29,8 @@ jobs:
 
       - name: 📦 Build
         run: |
-          docker build -t ${{ env.REGISTRY }}/lambda-eks-event-cloudwatch:${{ github.ref_name }} .
+          docker build -t ${{ env.REGISTRY }}/skpr/lambda-eks-event-cloudwatch:${{ github.ref_name }} .
 
       - name: ☁️ Push
         run: |
-          docker push ${{ env.REGISTRY }}/lambda-eks-event-cloudwatch:${{ github.ref_name }}
+          docker push ${{ env.REGISTRY }}/skpr/lambda-eks-event-cloudwatch:${{ github.ref_name }}
