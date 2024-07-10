@@ -1,0 +1,16 @@
+name: "📋 Build and Test"
+
+on:
+  pull_request:
+    types: [ synchronize, opened, reopened, ready_for_review ]
+
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: ⬇️ Git clone the repository
+        uses: actions/checkout@v4
+      - name: 📦 Build
+        run: |
+          docker build -t docker.io/skpr/lambda-eks-event-cloudwatch:latest .
