@@ -9,3 +9,17 @@ flowchart LR
    Lambda --> EKS
    EKS --> Kubectl
 ```
+
+## Requirements
+
+### AWS IAM Permissions
+
+```
+TBD
+```
+
+### CloudWatch Alarm Tags
+
+```
+TBD
+```
