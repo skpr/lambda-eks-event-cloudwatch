@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -136,9 +137,13 @@ func getKubernetesEvent(tags []awscloudwatchtypes.Tag, event *cloudwatch.Event) 
 			Namespace:  namespace,
 			Name:       name,
 		},
-		Type:    corev1.EventTypeWarning,
-		Reason:  reason,
-		Message: event.AlarmData.Configuration.Description,
+		Type:                corev1.EventTypeWarning,
+		Reason:              reason,
+		Message:             event.AlarmData.Configuration.Description,
+		EventTime:           metav1.NewMicroTime(time.Now()),
+		FirstTimestamp:      metav1.Now(),
+		LastTimestamp:       metav1.Now(),
+		ReportingController: "skpr.io/lambda-eks-event-cloudwatch",
 	}
 
 	return object, nil
