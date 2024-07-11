@@ -1,6 +1,8 @@
 package aws
 
 const (
+	// TagKeyAPIGroup is used to determine the API version of Kubernetes resource.
+	TagKeyAPIGroup = "skpr.io/k8s-event-api-group"
 	// TagKeyAPIVersion is used to determine the API version of Kubernetes resource.
 	TagKeyAPIVersion = "skpr.io/k8s-event-api-version"
 	// TagKeyKind is used to determine the kind of Kubernetes resource.
