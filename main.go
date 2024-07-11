@@ -18,6 +18,7 @@ import (
 	"github.com/skpr/lambda-eks-event-cloudwatch/internal/cloudwatch"
 	skpreks "github.com/skpr/lambda-eks-event-cloudwatch/internal/eks"
 	"github.com/skpr/lambda-eks-event-cloudwatch/pkg/annotation"
+	skpraws "github.com/skpr/lambda-eks-event-cloudwatch/pkg/aws"
 )
 
 var (
@@ -58,7 +59,7 @@ func HandleLambdaEvent(ctx context.Context, event *cloudwatch.Event) error {
 		return fmt.Errorf("failed to list tags for resource: %w", err)
 	}
 
-	cluster, err := cloudwatch.GetValueFromTag(alarm.Tags, cloudwatch.TagKeyCluster)
+	cluster, err := cloudwatch.GetValueFromTag(alarm.Tags, skpraws.TagKeyCluster)
 	if err != nil {
 		return fmt.Errorf("failed to get cluster from tags: %w", err)
 	}
@@ -96,27 +97,27 @@ func HandleLambdaEvent(ctx context.Context, event *cloudwatch.Event) error {
 
 // Run will execute the core of the function.
 func getKubernetesEvent(tags []awscloudwatchtypes.Tag, event *cloudwatch.Event) (*corev1.Event, error) {
-	apiVersion, err := cloudwatch.GetValueFromTag(tags, cloudwatch.TagKeyAPIVersion)
+	apiVersion, err := cloudwatch.GetValueFromTag(tags, skpraws.TagKeyAPIVersion)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get api version from tags: %w", err)
 	}
 
-	kind, err := cloudwatch.GetValueFromTag(tags, cloudwatch.TagKeyKind)
+	kind, err := cloudwatch.GetValueFromTag(tags, skpraws.TagKeyKind)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get kind from tags: %w", err)
 	}
 
-	namespace, err := cloudwatch.GetValueFromTag(tags, cloudwatch.TagKeyNamespace)
+	namespace, err := cloudwatch.GetValueFromTag(tags, skpraws.TagKeyNamespace)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get namespace from tags: %w", err)
 	}
 
-	name, err := cloudwatch.GetValueFromTag(tags, cloudwatch.TagKeyName)
+	name, err := cloudwatch.GetValueFromTag(tags, skpraws.TagKeyName)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get name from tags: %w", err)
 	}
 
-	reason, err := cloudwatch.GetValueFromTag(tags, cloudwatch.TagKeyReason)
+	reason, err := cloudwatch.GetValueFromTag(tags, skpraws.TagKeyReason)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get reason from tags: %w", err)
 	}
