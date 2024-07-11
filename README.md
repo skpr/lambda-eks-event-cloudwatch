@@ -14,7 +14,7 @@ flowchart LR
 
 ### AWS IAM Permissions
 
-```
+```json
 {
     "Statement": [
         {
@@ -34,7 +34,7 @@ flowchart LR
 
 ### Kubernetes RBAC
 
-```
+```yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -50,13 +50,12 @@ rules:
 
 ### CloudWatch Alarm Tags
 
-```
-skpr.io/k8s-event-api-version
-skpr.io/k8s-event-kind
-skpr.io/k8s-event-cluster
-skpr.io/k8s-event-namespace
-skpr.io/k8s-event-name
-```
+
+* `skpr.io/k8s-event-api-version`
+* `skpr.io/k8s-event-kind`
+* `skpr.io/k8s-event-cluster`
+* `skpr.io/k8s-event-namespace`
+* `skpr.io/k8s-event-name`
 
 ### Sample Lambda Event
 
