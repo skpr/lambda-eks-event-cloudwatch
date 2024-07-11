@@ -3,9 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
-	"time"
-
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	awsconfig "github.com/aws/aws-sdk-go-v2/config"
@@ -15,6 +12,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
+	"log"
 
 	"github.com/skpr/lambda-eks-event-cloudwatch/internal/cloudwatch"
 	skpreks "github.com/skpr/lambda-eks-event-cloudwatch/internal/eks"
@@ -137,14 +135,11 @@ func getKubernetesEvent(tags []awscloudwatchtypes.Tag, event *cloudwatch.Event) 
 			Namespace:  namespace,
 			Name:       name,
 		},
-		Type:                corev1.EventTypeWarning,
-		Reason:              reason,
-		Message:             event.AlarmData.Configuration.Description,
-		EventTime:           metav1.NewMicroTime(time.Now()),
-		FirstTimestamp:      metav1.Now(),
-		LastTimestamp:       metav1.Now(),
-		ReportingController: "skpr.io/lambda-eks-event-cloudwatch",
-		ReportingInstance:   "lambda",
+		Type:           corev1.EventTypeWarning,
+		Reason:         reason,
+		Message:        event.AlarmData.Configuration.Description,
+		FirstTimestamp: metav1.Now(),
+		LastTimestamp:  metav1.Now(),
 	}
 
 	return object, nil
