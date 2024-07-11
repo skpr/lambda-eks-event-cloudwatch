@@ -144,6 +144,7 @@ func getKubernetesEvent(tags []awscloudwatchtypes.Tag, event *cloudwatch.Event) 
 		FirstTimestamp:      metav1.Now(),
 		LastTimestamp:       metav1.Now(),
 		ReportingController: "skpr.io/lambda-eks-event-cloudwatch",
+		ReportingInstance:   "lambda",
 	}
 
 	return object, nil
