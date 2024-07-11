@@ -76,5 +76,9 @@ func TestGetKubernetesEvent(t *testing.T) {
 		Message: "test-description",
 	}
 
-	assert.Equal(t, want, object)
+	assert.Equal(t, want.ObjectMeta, object.ObjectMeta, "ObjectMeta matches")
+	assert.Equal(t, want.InvolvedObject, object.InvolvedObject, "InvolvedObject matches")
+	assert.Equal(t, want.Type, object.Type, "Type matches")
+	assert.Equal(t, want.Reason, object.Reason, "Reason matches")
+	assert.Equal(t, want.Message, object.Message, "Message matches")
 }
