@@ -35,6 +35,10 @@ func TestGetKubernetesEvent(t *testing.T) {
 			Key:   aws.String(cloudwatch.TagKeyName),
 			Value: aws.String("test-object"),
 		},
+		{
+			Key:   aws.String(cloudwatch.TagKeyReason),
+			Value: aws.String("test-reason"),
+		},
 	}
 
 	event := &cloudwatch.Event{
@@ -67,8 +71,8 @@ func TestGetKubernetesEvent(t *testing.T) {
 			Name:       "test-object",
 		},
 		Type:    corev1.EventTypeWarning,
-		Reason:  event.AlarmData.State.Reason,
-		Message: event.AlarmData.Configuration.Description,
+		Reason:  "test-reason",
+		Message: "test-description",
 	}
 
 	assert.Equal(t, want, object)
