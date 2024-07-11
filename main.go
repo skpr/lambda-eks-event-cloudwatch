@@ -45,10 +45,6 @@ func HandleLambdaEvent(ctx context.Context, event *cloudwatch.Event) error {
 		return fmt.Errorf("alarm ARN is required")
 	}
 
-	if event.AlarmData.State.Reason == "" {
-		return fmt.Errorf("alarm state reason is required")
-	}
-
 	if event.AlarmData.Configuration.Description == "" {
 		return fmt.Errorf("alarm configuration description is required")
 	}
@@ -120,6 +116,11 @@ func getKubernetesEvent(tags []awscloudwatchtypes.Tag, event *cloudwatch.Event) 
 		return nil, fmt.Errorf("failed to get name from tags: %w", err)
 	}
 
+	reason, err := cloudwatch.GetValueFromTag(tags, cloudwatch.TagKeyReason)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get reason from tags: %w", err)
+	}
+
 	object := &corev1.Event{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace:    namespace,
@@ -135,7 +136,7 @@ func getKubernetesEvent(tags []awscloudwatchtypes.Tag, event *cloudwatch.Event) 
 			Name:       name,
 		},
 		Type:    corev1.EventTypeWarning,
-		Reason:  event.AlarmData.State.Reason,
+		Reason:  reason,
 		Message: event.AlarmData.Configuration.Description,
 	}
 

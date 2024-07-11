@@ -17,6 +17,8 @@ const (
 	TagKeyNamespace = "skpr.io/k8s-event-namespace"
 	// TagKeyName is used to determine the name of the Kubernetes resource.
 	TagKeyName = "skpr.io/k8s-event-name"
+	// TagKeyReason is used to determine the reason for this event.
+	TagKeyReason = "skpr.io/k8s-event-reason"
 )
 
 // GetValueFromTag returns the value of a tag with the given key, or false if the tag does not exist.
