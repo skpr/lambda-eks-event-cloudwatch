@@ -11,32 +11,33 @@ import (
 
 	"github.com/skpr/lambda-eks-event-cloudwatch/internal/cloudwatch"
 	"github.com/skpr/lambda-eks-event-cloudwatch/pkg/annotation"
+	skpraws "github.com/skpr/lambda-eks-event-cloudwatch/pkg/aws"
 )
 
 func TestGetKubernetesEvent(t *testing.T) {
 	tags := []awscloudwatchtypes.Tag{
 		{
-			Key:   aws.String(cloudwatch.TagKeyAPIVersion),
+			Key:   aws.String(skpraws.TagKeyAPIVersion),
 			Value: aws.String("test.skpr.io/v1beta1"),
 		},
 		{
-			Key:   aws.String(cloudwatch.TagKeyKind),
+			Key:   aws.String(skpraws.TagKeyKind),
 			Value: aws.String("Test"),
 		},
 		{
-			Key:   aws.String(cloudwatch.TagKeyCluster),
+			Key:   aws.String(skpraws.TagKeyCluster),
 			Value: aws.String("test-cluster"),
 		},
 		{
-			Key:   aws.String(cloudwatch.TagKeyNamespace),
+			Key:   aws.String(skpraws.TagKeyNamespace),
 			Value: aws.String("test-namespace"),
 		},
 		{
-			Key:   aws.String(cloudwatch.TagKeyName),
+			Key:   aws.String(skpraws.TagKeyName),
 			Value: aws.String("test-object"),
 		},
 		{
-			Key:   aws.String(cloudwatch.TagKeyReason),
+			Key:   aws.String(skpraws.TagKeyReason),
 			Value: aws.String("test-reason"),
 		},
 	}
