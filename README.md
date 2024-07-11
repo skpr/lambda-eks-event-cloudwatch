@@ -57,3 +57,20 @@ skpr.io/k8s-event-cluster
 skpr.io/k8s-event-namespace
 skpr.io/k8s-event-name
 ```
+
+### Sample Lambda Event
+
+```json
+{
+	"alarmArn": "arn:aws:cloudwatch:ap-southeast-2:ACCOUNT_ID:alarm:CLOUDWATCH_ALARM_NAME",
+	"alarmData": {
+		"alarmName": "CLOUDWATCH_ALARM_NAME",
+		"state": {
+			"reason": "FAILING"
+		},
+		"configuration": {
+			"description": "This is a test"
+		}
+	}
+}
+```
